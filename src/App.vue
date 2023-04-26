@@ -64,7 +64,7 @@ export default {
 
       brushSetting: {
         strokeStyle: "#ff0000",
-        lineWidth: 10,
+        lineWidth: 20,
       },
       eraserSetting: {
         lineWidth: 25,
@@ -137,42 +137,91 @@ export default {
     
     // 初始化監聽器
     setupAllEventListener() {
-      this.canvas.addEventListener("mousedown", (event) => {
-        this.updateIsDrawing(true);
-
-        // 設置起始點
-        const x = event.pageX - this.canvas.offsetLeft;
-        const y = event.pageY - this.canvas.offsetTop;
-        this.drawCtx.beginPath();
-        this.drawCtx.moveTo(x, y);       
-      })
-      
-      this.canvas.addEventListener("mousemove", (event) => {
-        const x = event.pageX - this.canvas.offsetLeft;
-        const y = event.pageY - this.canvas.offsetTop;
-
-        if (!this.isDrawing) return;
-
-        switch (this.mode) {
-          case "brush":
-            this.drawLine(x, y);
-            break;
-          case "eraser":
-            this.clearLine(x, y);
-            break;
-        }
-      })
-      
-      this.canvas.addEventListener("mouseup", (event) => {
-        this.idx += 1;
-        this.paths.push(this.canvas.toDataURL());
-        this.updateIsDrawing(false);
-      })
+      this.canvas.addEventListener("mousedown", this.onMouseDown);
+      this.canvas.addEventListener("mousemove", this.onMouseMove);
+      this.canvas.addEventListener("mouseup", this.onMouseUp);
+      this.canvas.addEventListener("mouseleave", this.onMouseLeave);
     },
     
     // 移除監聽器
     removeAllEventListener() {
-      // 
+      this.canvas.removeEventListener("mousedown", this.onMouseDown);
+      this.canvas.removeEventListener("mousemove", this.onMouseMove);
+      this.canvas.removeEventListener("mouseup", this.onMouseUp);
+      this.canvas.removeEventListener("mouseleave", this.onMouseLeave);
+    },
+
+    onMouseDown(event) {
+      this.updateIsDrawing(true);
+
+      // 設置起始點
+      const x = event.pageX - this.canvas.offsetLeft;
+      const y = event.pageY - this.canvas.offsetTop;
+      this.drawCtx.beginPath();
+      this.drawCtx.moveTo(x, y);  
+    },
+
+    onMouseMove(event) {
+      const x = event.pageX - this.canvas.offsetLeft;
+      const y = event.pageY - this.canvas.offsetTop;
+
+      this.handlePreview(x, y);
+
+      if (!this.isDrawing) return;
+
+      switch (this.mode) {
+        case "brush":
+          this.drawLine(x, y);
+          break;
+        case "eraser":
+          this.clearLine(x, y);
+          break;
+      }
+    },
+
+    onMouseUp() {
+      if (!this.isDrawing) return;
+
+      this.idx += 1;
+      this.paths.push(this.canvas.toDataURL());
+      this.updateIsDrawing(false);
+    },
+
+    onMouseLeave() {
+      this.previewCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.reDraw();
+
+      this.onMouseUp();
+    },
+
+    handlePreview(x, y) {
+      this.previewCtx.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
+
+      this.previewCtx.beginPath();
+
+      switch (this.mode) {
+        case "brush":
+          this.previewCtx.arc(x, y, this.brushSetting.lineWidth / 2, 0, 2 * Math.PI);
+          this.previewCtx.fillStyle = this.brushSetting.strokeStyle;
+          this.previewCtx.fill();
+          break;
+        case "eraser":
+          this.previewCtx.fillStyle = "#ffffff";
+          this.previewCtx.fillRect((x - this.eraserSetting.lineWidth / 2), (y - this.eraserSetting.lineWidth / 2), this.eraserSetting.lineWidth, this.eraserSetting.lineWidth);
+
+          this.previewCtx.strokeStyle = '#000000';
+          this.previewCtx.lineWidth = 1;
+          this.previewCtx.strokeRect((x - this.eraserSetting.lineWidth / 2), (y - this.eraserSetting.lineWidth / 2), this.eraserSetting.lineWidth, this.eraserSetting.lineWidth);
+          break;
+      }
+
+      this.reDraw();
+    },
+
+    reDraw() {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.drawImage(this.drawCanvas, 0, 0);
+      if (!this.isDrawing) this.ctx.drawImage(this.previewCanvas, 0, 0);
     },
 
     // 繪製線條
@@ -189,6 +238,10 @@ export default {
       // this.ctx.drawImage(this.drawCanvas, 0, 0);
 
       this.ctx.clearRect((x - this.eraserSetting.lineWidth / 2), (y - this.eraserSetting.lineWidth / 2), this.eraserSetting.lineWidth, this.eraserSetting.lineWidth)
+
+      this.previewCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.previewCtx.drawImage(this.canvas, 0, 0);
+
       this.drawCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.drawCtx.drawImage(this.canvas, 0, 0);
     },
@@ -361,5 +414,6 @@ canvas {
   background-image: url("https://i.imgur.com/XDNo48G.png");
   background-size: contain;
   background-repeat: no-repeat;
+  cursor: none;
 }
 </style>
