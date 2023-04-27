@@ -168,13 +168,13 @@ export default {
 
       switch (event.type) {
         case "mousedown":
-          console.log("onStartDrawing: mousedown");
+          // console.log("onStartDrawing: mousedown");
           // 設置起始點
           x = event.pageX - this.canvas.offsetLeft;
           y = event.pageY - this.canvas.offsetTop;
           break;
         case "touchstart":
-          console.log("onStartDrawing: touchstart");
+          // console.log("onStartDrawing: touchstart");
           const touch = event.touches[0];
           x = touch.clientX - this.canvas.offsetLeft;
           y = touch.clientY - this.canvas.offsetTop;          
@@ -190,13 +190,13 @@ export default {
 
       switch (event.type) {
         case "mousemove":
-          console.log("onStartDrawing: mousemove");
+          // console.log("onStartDrawing: mousemove");
           // 設置起始點
           x = event.pageX - this.canvas.offsetLeft;
           y = event.pageY - this.canvas.offsetTop;
           break;
         case "touchmove":
-          console.log("onStartDrawing: touchmove");
+          // console.log("onStartDrawing: touchmove");
           const touch = event.touches[0];
           x = touch.clientX - this.canvas.offsetLeft;
           y = touch.clientY - this.canvas.offsetTop;          
@@ -218,7 +218,7 @@ export default {
     },
 
     onStopDrawing() {
-      console.log("onStopDrawing");
+      // console.log("onStopDrawing");
       if (!this.isDrawing) return;
 
       this.idx += 1;
