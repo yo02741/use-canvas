@@ -137,33 +137,71 @@ export default {
     
     // 初始化監聽器
     setupAllEventListener() {
-      this.canvas.addEventListener("mousedown", this.onMouseDown);
-      this.canvas.addEventListener("mousemove", this.onMouseMove);
-      this.canvas.addEventListener("mouseup", this.onMouseUp);
-      this.canvas.addEventListener("mouseleave", this.onMouseLeave);
+      this.canvas.addEventListener("mousedown", this.onStartDrawing);
+      this.canvas.addEventListener("mousemove", this.onDrawing);
+      this.canvas.addEventListener("mouseup", this.onStopDrawing);
+      this.canvas.addEventListener("mouseleave", this.onLeaveDrawing);
+
+      this.canvas.addEventListener("touchstart", this.onStartDrawing);
+      this.canvas.addEventListener("touchmove", this.onDrawing);
+      this.canvas.addEventListener("touchend", this.onStopDrawing);
+      this.canvas.addEventListener("touchcancel", this.onLeaveDrawing);
     },
     
     // 移除監聽器
     removeAllEventListener() {
-      this.canvas.removeEventListener("mousedown", this.onMouseDown);
-      this.canvas.removeEventListener("mousemove", this.onMouseMove);
-      this.canvas.removeEventListener("mouseup", this.onMouseUp);
-      this.canvas.removeEventListener("mouseleave", this.onMouseLeave);
+      this.canvas.removeEventListener("mousedown", this.onStartDrawing);
+      this.canvas.removeEventListener("mousemove", this.onDrawing);
+      this.canvas.removeEventListener("mouseup", this.onStopDrawing);
+      this.canvas.removeEventListener("mouseleave", this.onLeaveDrawing);
+
+      this.canvas.removeEventListener("touchstart", this.onStartDrawing);
+      this.canvas.removeEventListener("touchmove", this.onDrawing);
+      this.canvas.removeEventListener("touchend", this.onStopDrawing);
+      this.canvas.removeEventListener("touchcancel", this.onLeaveDrawing);
     },
 
-    onMouseDown(event) {
+    onStartDrawing(event) {
       this.updateIsDrawing(true);
 
-      // 設置起始點
-      const x = event.pageX - this.canvas.offsetLeft;
-      const y = event.pageY - this.canvas.offsetTop;
+      let x, y;
+
+      switch (event.type) {
+        case "mousedown":
+          console.log("onStartDrawing: mousedown");
+          // 設置起始點
+          x = event.pageX - this.canvas.offsetLeft;
+          y = event.pageY - this.canvas.offsetTop;
+          break;
+        case "touchstart":
+          console.log("onStartDrawing: touchstart");
+          const touch = event.touches[0];
+          x = touch.clientX - this.canvas.offsetLeft;
+          y = touch.clientY - this.canvas.offsetTop;          
+          break;
+      }
+
       this.drawCtx.beginPath();
       this.drawCtx.moveTo(x, y);  
     },
 
-    onMouseMove(event) {
-      const x = event.pageX - this.canvas.offsetLeft;
-      const y = event.pageY - this.canvas.offsetTop;
+    onDrawing(event) {
+      let x, y;
+
+      switch (event.type) {
+        case "mousemove":
+          console.log("onStartDrawing: mousemove");
+          // 設置起始點
+          x = event.pageX - this.canvas.offsetLeft;
+          y = event.pageY - this.canvas.offsetTop;
+          break;
+        case "touchmove":
+          console.log("onStartDrawing: touchmove");
+          const touch = event.touches[0];
+          x = touch.clientX - this.canvas.offsetLeft;
+          y = touch.clientY - this.canvas.offsetTop;          
+          break;
+      }
 
       this.handlePreview(x, y);
 
@@ -179,7 +217,8 @@ export default {
       }
     },
 
-    onMouseUp() {
+    onStopDrawing() {
+      console.log("onStopDrawing");
       if (!this.isDrawing) return;
 
       this.idx += 1;
@@ -187,11 +226,11 @@ export default {
       this.updateIsDrawing(false);
     },
 
-    onMouseLeave() {
+    onLeaveDrawing() {
       this.previewCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.reDraw();
 
-      this.onMouseUp();
+      this.onStopDrawing();
     },
 
     handlePreview(x, y) {
